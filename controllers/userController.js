@@ -38,7 +38,6 @@ const createUser = async (req, res) => {
                     _id: new_user._id,
                     name: new_user.name,
                     email: new_user.email,
-                    password: new_user.password,
                     isAdmin: new_user.isAdmin
                 })
             }
@@ -132,7 +131,7 @@ const getAllUserProfiles = async (req, res) => {
         // Check if the current user is admin
         if (user.isAdmin == true) {
             // Retrieve all user profiles, excluding sensitive fields, and sorted by creation date
-            const userProfiles = await User.find({}).select('-createdAt -updatedAt -__v').sort({ createdAt: -1 });
+            const userProfiles = await User.find({}).select('-password -createdAt -updatedAt -__v').sort({ createdAt: -1 });
 
             return res.status(200).json(userProfiles);
         }
@@ -244,17 +243,19 @@ const deleteUser = async (req, res) => {
 // Function to update a user profile (accessible only to admins)
 const updateUser = async (req, res) => {
     try {
+
+        const { id } = req.params;
+
         const user = req.user;
 
+        // Check if the id is valid
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({ error: 'User not found' });
+        }
+
         // Check if the current user is an admin
-        if (user.isAdmin == true) {
-            const { id } = req.params;
-
-            // Check if the id is valid
-            if (!mongoose.Types.ObjectId.isValid(id)) {
-                return res.status(400).json({ error: 'User not found' });
-            }
-
+        if ((user.isAdmin == true) || (user._id == id)) {
+            
             // Update the user with the new data
             const updatedUser = await User.findOneAndUpdate(
                 { _id: id }, 

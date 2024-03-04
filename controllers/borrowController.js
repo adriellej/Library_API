@@ -29,13 +29,7 @@ const borrowBook = async (req, res) => {
                 return res.status(404).json({ error: 'Book not found' });
             }
 
-            // Check if the book is already borrowed by the user
-            const isAlreadyBorrowed = await BorrowedBook.findOne({ book: book_id, user: user._id, returned: false });
-
-            if (isAlreadyBorrowed) {
-                return res.status(400).json({ error: 'You have already borrowed this book' });
-            }
-
+            
             // Check if there are available copies of the book
             if (bookInfo.stocks > 0) {
                 // Decrement the book stock by the user-specified value
@@ -254,80 +248,6 @@ const returnBook = async (req, res) => {
     }
 };
 
-
-/*
-// Function to handle returning a borrowed book
-const returnBook = async (req, res) => {
-    try{
-        const { borrowedBookId, book_copies } = req.body;
-
-        const user = req.user;
-
-        // Check if the book id is valid
-        if (!mongoose.Types.ObjectId.isValid(borrowedBookId)) {
-            return res.status(400).json({ error: 'Invalid book ID' });
-        }
-
-        // Find the borrowed book by ID
-        const borrowedBook = await BorrowedBook.findById(borrowedBookId);
-
-        // Check if borrowed book exists
-        if (!borrowedBook) {
-            return res.status(404).json({ error: 'Borrowed book not found' });
-        }
-
-        //Check if the current user is the same as the book borrower
-        if (user._id.toString() !== borrowedBook.user.toString()) {
-            return res.status(401).json({ error: 'Unauthorized user' });
-        }
-
-        // Check if the book has already been returned
-        if (borrowedBook.returned) {
-            return res.status(400).json({ error: 'The book has already been returned' });
-        }
-
-        if (book_copies > borrowedBook.bookCopies) {
-
-        }
-
-        const book = await Book.findById(borrowedBook.book);
-
-        // Increment the book stock
-        const updatedBook = await Book.findByIdAndUpdate(
-            book.id,
-            { $inc: { stocks: + book_copies } },
-            { new: true }
-        );
-
-        // Check if the book was updated successfully
-        if (!updatedBook) {
-            return res.status(400).json({ error: 'Failed to update book stock.' });
-        }
-
-        if (book_copies == borrowedBook.bookCopies) {
-            // Update borrowed book to mark as returned
-            borrowedBook.returned = true;
-        }
-        
-        // Update the returnDate
-        borrowedBook.returnDate = new Date();
-        await borrowedBook.save();
-
-        // Return success response
-        return res.status(200).json({ message: 'Book returned successfully' });
-        
-
-    }
-    catch (error) {
-        // Return error response if any error occurs
-        return res.status(500).json({
-            message: error.message,
-            stack: error.stack
-        })
-    }
-};
-
-*/
 
 // Exporting the functions
 module.exports = {
