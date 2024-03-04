@@ -144,14 +144,6 @@ const getAllUserProfiles = async (req, res) => {
             message: error.message,
             stack: error.stack
         })
-
-        /*
-            console.error(error);
-            res.status(500).json({
-                    error: error.message,
-                    stack: error.stack
-            })
-        */
     } 
     
 }
