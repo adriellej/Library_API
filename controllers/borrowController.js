@@ -88,6 +88,51 @@ const borrowBook = async (req, res) => {
 
 // Function to get all borrowed books
 const getAllBorrowedBooks = async (req, res) => {
+    try {
+        // Check if the user is authenticated
+        if (!req.user || !req.user._id) {
+            return res.status(401).json({ error: 'User not authenticated' });
+        }
+
+        const user = req.user;
+
+        // If user is admin, find all borrowed books
+        if (user.isAdmin == true) {
+            const allBorrowedBooks = await BorrowedBook.find({}).select('-createdAt -updatedAt -__v').sort({ createdAt: -1 });
+
+            if (!allBorrowedBooks || allBorrowedBooks.length === 0) {
+                return res.status(404).json({ message: 'No borrowed books found.' });
+            }
+
+            // Return success response with all borrowed books
+            return res.status(200).json(allBorrowedBooks);
+        } else {
+            // If user is not an admin, check if they are the borrower
+            const userBorrowedBooks = await BorrowedBook.find({ user: user._id })
+                .select('-createdAt -updatedAt -__v')
+                .sort({ createdAt: -1 });
+
+            if (!userBorrowedBooks || userBorrowedBooks.length === 0) {
+                return res.status(404).json({ message: 'No borrowed books found for this user.' });
+            }
+
+            // Return success response with user's borrowed books
+            return res.status(200).json(userBorrowedBooks);
+        }
+    } catch (error) {
+        // Return error response if any error occurs
+        return res.status(500).json({
+            message: error.message,
+            stack: error.stack
+        });
+    }
+};
+
+
+
+/*
+// Function to get all borrowed books
+const getAllBorrowedBooks = async (req, res) => {
     try{
         // Check if the user is authenticated
         if (!req.user || !req.user._id) {
@@ -97,7 +142,7 @@ const getAllBorrowedBooks = async (req, res) => {
         const user = req.user;
 
         // Check if the user is an admin
-        if (user.isAdmin == true) {
+        if (user.isAdmin == true) { 
             // Find all borrowed books
             const allBorrowedBooks = await BorrowedBook.find({}).select('-createdAt -updatedAt -__v').sort({ createdAt: -1 });
 
@@ -121,6 +166,8 @@ const getAllBorrowedBooks = async (req, res) => {
         })
     }
 };
+*/
+
 
 // Function to get all borrowed books by a specific reader
 const getAllBorrowedBooksbyReader = async (req, res) => {
